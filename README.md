@@ -2,6 +2,18 @@
 # ws-tcp-proxy
 Simple websocket tcp proxy.
 
+```
+Usage:
+  ws-tcp-proxy <address> [flags]
+
+Flags:
+  -b, --binary-mode   binary mode
+  -c, --cert string   path to cert.pem for TLS
+  -k, --key string    path to key.pem for TLS
+  -p, --port int      server port (default 8080)
+  -v, --version       display version
+```
+
 ## Install
 
 ```
