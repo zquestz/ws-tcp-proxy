@@ -52,7 +52,7 @@ func prepareFlags() {
 	ProxyCmd.PersistentFlags().StringVarP(
 		&config.Key, "key", "k", config.Key, "path to key.pem for TLS")
 	ProxyCmd.PersistentFlags().BoolVarP(
-		&config.BinaryMode, "binary-mode", "b", config.BinaryMode, "binary mode")
+		&config.TextMode, "text-mode", "t", config.TextMode, "text mode")
 }
 
 // Where all the work happens.
@@ -71,7 +71,7 @@ func performCommand(cmd *cobra.Command, args []string) error {
 
 	address := args[0]
 
-	err := server.Run(config.Port, config.Cert, config.Key, config.BinaryMode, address)
+	err := server.Run(config.Port, config.Cert, config.Key, config.TextMode, address)
 	if err != nil {
 		return err
 	}

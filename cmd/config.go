@@ -21,7 +21,7 @@ type Config struct {
 	DisplayVersion bool   `json:"-"`
 	Key            string `json:"key"`
 	Port           int    `json:"port,string"`
-	BinaryMode     bool   `json:"binaryMode,string"`
+	TextMode       bool   `json:"textMode,string"`
 }
 
 // Load reads the configuration from ~/.config/ws-tcp-proxy/config

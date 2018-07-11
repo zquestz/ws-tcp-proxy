@@ -7,10 +7,11 @@ Usage:
   ws-tcp-proxy <address> [flags]
 
 Flags:
-  -b, --binary-mode   binary mode
   -c, --cert string   path to cert.pem for TLS
+  -h, --help          help for ws-tcp-proxy
   -k, --key string    path to key.pem for TLS
   -p, --port int      server port (default 8080)
+  -t, --text-mode     text mode
   -v, --version       display version
 ```
 

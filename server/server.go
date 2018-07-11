@@ -10,24 +10,22 @@ import (
 	"golang.org/x/net/websocket"
 )
 
-var binaryProxy = true
-var address = ""
-
 // Run starts up the websocket tcp proxy.
-func Run(port int, cert string, key string, binaryMode bool, tcpAddress string) error {
+func Run(port int, cert string, key string, textMode bool, tcpAddress string) error {
 	err := validatePort(port)
 	if err != nil {
 		return err
 	}
 
-	binaryProxy = binaryMode
-	address = tcpAddress
-
 	portString := fmt.Sprintf(":%d", port)
 
 	log.Printf("[INFO] Listening on %s\n", portString)
 
-	http.Handle("/", websocket.Handler(proxyHandler))
+	var proxyFunc = func(ws *websocket.Conn) {
+		proxyHandler(ws, textMode, tcpAddress)
+	}
+
+	http.Handle("/", websocket.Handler(proxyFunc))
 
 	if cert != "" && key != "" {
 		err = http.ListenAndServeTLS(portString, cert, key, nil)
@@ -44,14 +42,14 @@ func Run(port int, cert string, key string, binaryMode bool, tcpAddress string) 
 	return nil
 }
 
-func proxyHandler(ws *websocket.Conn) {
-	conn, err := net.Dial("tcp", address)
+func proxyHandler(ws *websocket.Conn, textMode bool, tcpAddress string) {
+	conn, err := net.Dial("tcp", tcpAddress)
 	if err != nil {
 		log.Printf("[ERROR] %v\n", err)
 		return
 	}
 
-	if binaryProxy {
+	if !textMode {
 		ws.PayloadType = websocket.BinaryFrame
 	}
 
