@@ -11,7 +11,7 @@ import (
 
 const (
 	appName     = "ws-tcp-proxy"
-	version     = "0.0.1"
+	version     = "0.0.2"
 	defaultPort = 8080
 )
 
@@ -22,6 +22,10 @@ type Config struct {
 	Key            string `json:"key"`
 	Port           int    `json:"port,string"`
 	TextMode       bool   `json:"textMode,string"`
+	TCPTLS         bool   `json:"tcpTLS,string"`
+	TCPTLSCert     string `json:"tcpTLSCert,string"`
+	TCPTLSKey      string `json:"tcpTLSKey,string"`
+	TCPTLSRootCA   string `json:"tcpTLSRootCA,string"`
 }
 
 // Load reads the configuration from ~/.config/ws-tcp-proxy/config

@@ -1,34 +1,39 @@
 package server
 
 import (
+	"crypto/tls"
+	"crypto/x509"
+	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
+	"strings"
 
 	"golang.org/x/net/websocket"
 )
 
 // Run starts up the websocket tcp proxy.
-func Run(port int, cert string, key string, textMode bool, tcpAddress string) error {
-	err := validatePort(port)
+func Run(c *Config) error {
+	err := validatePort(c.Port)
 	if err != nil {
 		return err
 	}
 
-	portString := fmt.Sprintf(":%d", port)
+	portString := fmt.Sprintf(":%d", c.Port)
 
 	log.Printf("[INFO] Listening on %s\n", portString)
 
 	var proxyFunc = func(ws *websocket.Conn) {
-		proxyHandler(ws, textMode, tcpAddress)
+		proxyHandler(ws, c)
 	}
 
 	http.Handle("/", websocket.Handler(proxyFunc))
 
-	if cert != "" && key != "" {
-		err = http.ListenAndServeTLS(portString, cert, key, nil)
+	if c.Cert != "" && c.Key != "" {
+		err = http.ListenAndServeTLS(portString, c.Cert, c.Key, nil)
 		if err != nil {
 			return err
 		}
@@ -42,14 +47,14 @@ func Run(port int, cert string, key string, textMode bool, tcpAddress string) er
 	return nil
 }
 
-func proxyHandler(ws *websocket.Conn, textMode bool, tcpAddress string) {
-	conn, err := net.Dial("tcp", tcpAddress)
+func proxyHandler(ws *websocket.Conn, c *Config) {
+	conn, err := getConn(c)
 	if err != nil {
 		log.Printf("[ERROR] %v\n", err)
 		return
 	}
 
-	if !textMode {
+	if !c.TextMode {
 		ws.PayloadType = websocket.BinaryFrame
 	}
 
@@ -62,6 +67,50 @@ func proxyHandler(ws *websocket.Conn, textMode bool, tcpAddress string) {
 	conn.Close()
 	ws.Close()
 	<-doneChan
+}
+
+func getConn(c *Config) (io.ReadWriteCloser, error) {
+	if c.TCPTLS {
+		config, err := getTLSConfig(c)
+		if err != nil {
+			return nil, err
+		}
+
+		return tls.Dial("tcp", c.Address, config)
+	}
+
+	return net.Dial("tcp", c.Address)
+}
+
+func getTLSConfig(c *Config) (*tls.Config, error) {
+	config := &tls.Config{
+		ServerName: strings.Split(c.Address, ":")[0],
+	}
+
+	if c.TCPTLSRootCA != "" {
+		root, err := ioutil.ReadFile(c.TCPTLSRootCA)
+		if err != nil {
+			return nil, err
+		}
+
+		certPool := x509.NewCertPool()
+		if !certPool.AppendCertsFromPEM([]byte(root)) {
+			return nil, errors.New("failed to parse root certificate")
+		}
+
+		config.RootCAs = certPool
+	}
+
+	if c.TCPTLSCert != "" && c.TCPTLSKey != "" {
+		certificate, err := tls.LoadX509KeyPair(c.TCPTLSCert, c.TCPTLSKey)
+		if err != nil {
+			return nil, fmt.Errorf("could not load client key pair: %s", err)
+		}
+
+		config.Certificates = []tls.Certificate{certificate}
+	}
+
+	return config, nil
 }
 
 func copyData(dst io.Writer, src io.Reader, doneChan chan<- bool) {
