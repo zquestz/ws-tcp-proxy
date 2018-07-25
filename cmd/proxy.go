@@ -1,11 +1,15 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
+	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 	"github.com/zquestz/ws-tcp-proxy/server"
+	"golang.org/x/crypto/acme/autocert"
 )
 
 // Stores configuration data.
@@ -61,6 +65,8 @@ func prepareFlags() {
 		&config.TCPTLSKey, "tcp-tls-key", "", config.TCPTLSKey, "path to client.key for TCP TLS")
 	ProxyCmd.PersistentFlags().StringVarP(
 		&config.TCPTLSRootCA, "tcp-tls-root-ca", "", config.TCPTLSRootCA, "path to ca.crt for TCP TLS")
+	ProxyCmd.PersistentFlags().StringVarP(
+		&config.AutoCert, "auto-cert", "a", config.AutoCert, "register hostname with LetsEncrypt")
 }
 
 // Where all the work happens.
@@ -68,6 +74,10 @@ func performCommand(cmd *cobra.Command, args []string) error {
 	if config.DisplayVersion {
 		fmt.Printf("%s %s\n", appName, version)
 		return nil
+	}
+
+	if config.AutoCert != "" && (config.Cert != "" || config.Key != "") {
+		return errors.New("can't specify auto-cert and key/cert")
 	}
 
 	if len(args) != 1 {
@@ -79,6 +89,11 @@ func performCommand(cmd *cobra.Command, args []string) error {
 
 	address := args[0]
 
+	m, err := getLetsEncryptManager()
+	if err != nil {
+		return err
+	}
+
 	serverConfig := &server.Config{
 		Port:         config.Port,
 		Cert:         config.Cert,
@@ -89,12 +104,42 @@ func performCommand(cmd *cobra.Command, args []string) error {
 		TCPTLSRootCA: config.TCPTLSRootCA,
 		TCPTLSCert:   config.TCPTLSCert,
 		TCPTLSKey:    config.TCPTLSKey,
+		CertManager:  m,
 	}
 
-	err := server.Run(serverConfig)
+	err = server.Run(serverConfig)
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func getLetsEncryptManager() (*autocert.Manager, error) {
+	configDir, err := config.configDir()
+	if err != nil {
+		return nil, err
+	}
+
+	certDir := filepath.Join(configDir, "certs")
+	if _, err := os.Stat(certDir); os.IsNotExist(err) {
+		err = os.MkdirAll(certDir, 0755)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if config.AutoCert == "" {
+		return nil, nil
+	}
+
+	m := &autocert.Manager{
+		Cache:      autocert.DirCache(certDir),
+		Prompt:     autocert.AcceptTOS,
+		HostPolicy: autocert.HostWhitelist(config.AutoCert),
+	}
+
+	go http.ListenAndServe(":http", m.HTTPHandler(nil))
+
+	return m, nil
 }

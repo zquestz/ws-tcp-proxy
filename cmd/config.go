@@ -11,7 +11,7 @@ import (
 
 const (
 	appName     = "ws-tcp-proxy"
-	version     = "0.0.2"
+	version     = "0.1.0"
 	defaultPort = 8080
 )
 
@@ -23,9 +23,10 @@ type Config struct {
 	Port           int    `json:"port,string"`
 	TextMode       bool   `json:"textMode,string"`
 	TCPTLS         bool   `json:"tcpTLS,string"`
-	TCPTLSCert     string `json:"tcpTLSCert,string"`
-	TCPTLSKey      string `json:"tcpTLSKey,string"`
-	TCPTLSRootCA   string `json:"tcpTLSRootCA,string"`
+	TCPTLSCert     string `json:"tcpTLSCert"`
+	TCPTLSKey      string `json:"tcpTLSKey"`
+	TCPTLSRootCA   string `json:"tcpTLSRootCA"`
+	AutoCert       string `json:"autoCert"`
 }
 
 // Load reads the configuration from ~/.config/ws-tcp-proxy/config
@@ -48,13 +49,22 @@ func (c *Config) Load() error {
 	return nil
 }
 
-func (c *Config) loadConfig() ([]byte, error) {
+func (c *Config) configDir() (string, error) {
 	h, err := homedir.Dir()
+	if err != nil {
+		return "", err
+	}
+
+	return filepath.Join(h, ".config", appName), nil
+}
+
+func (c *Config) loadConfig() ([]byte, error) {
+	configDir, err := c.configDir()
 	if err != nil {
 		return nil, err
 	}
 
-	f, err := os.Open(filepath.Join(h, ".config", appName, "config"))
+	f, err := os.Open(filepath.Join(configDir, "config"))
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, nil

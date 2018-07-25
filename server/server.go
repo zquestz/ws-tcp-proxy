@@ -30,15 +30,26 @@ func Run(c *Config) error {
 		proxyHandler(ws, c)
 	}
 
-	http.Handle("/", websocket.Handler(proxyFunc))
+	mux := http.NewServeMux()
+	mux.Handle("/", websocket.Handler(proxyFunc))
 
-	if c.Cert != "" && c.Key != "" {
-		err = http.ListenAndServeTLS(portString, c.Cert, c.Key, nil)
+	srv := &http.Server{
+		Addr:      portString,
+		Handler:   mux,
+		TLSConfig: &tls.Config{},
+	}
+
+	if c.CertManager != nil {
+		srv.TLSConfig.GetCertificate = c.CertManager.GetCertificate
+	}
+
+	if c.CertManager != nil || (c.Cert != "" && c.Key != "") {
+		err = srv.ListenAndServeTLS(c.Cert, c.Key)
 		if err != nil {
 			return err
 		}
 	} else {
-		err = http.ListenAndServe(portString, nil)
+		err = srv.ListenAndServe()
 		if err != nil {
 			return err
 		}
