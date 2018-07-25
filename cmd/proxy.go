@@ -17,7 +17,7 @@ var config Config
 
 // ProxyCmd is the main command for Cobra.
 var ProxyCmd = &cobra.Command{
-	Use:   "ws-tcp-proxy <address>",
+	Use:   "ws-tcp-proxy <address:port>",
 	Short: "Simple websocket tcp proxy.",
 	Long:  `Simple websocket tcp proxy.`,
 	Run: func(cmd *cobra.Command, args []string) {

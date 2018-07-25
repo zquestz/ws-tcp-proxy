@@ -4,7 +4,7 @@ Simple websocket tcp proxy.
 
 ```
 Usage:
-  ws-tcp-proxy <address> [flags]
+  ws-tcp-proxy <address:port> [flags]
 
 Flags:
   -a, --auto-cert string         register hostname with LetsEncrypt
