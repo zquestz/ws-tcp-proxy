@@ -7,6 +7,7 @@ Usage:
   ws-tcp-proxy <address> [flags]
 
 Flags:
+  -a, --auto-cert string         register hostname with LetsEncrypt
   -c, --cert string              path to cert.pem for TLS
   -k, --key string               path to key.pem for TLS
   -p, --port int                 server port (default 8080)
@@ -16,6 +17,7 @@ Flags:
       --tcp-tls-root-ca string   path to ca.crt for TCP TLS
   -t, --text-mode                text mode
   -v, --version                  display version
+
 ```
 
 ## Install
