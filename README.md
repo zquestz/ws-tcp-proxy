@@ -29,14 +29,6 @@ make
 make install
 ```
 
-If you have issues building ws-tcp-proxy, you can vendor the dependencies by using [gvt](https://github.com/FiloSottile/gvt):
-
-```
-go get -u github.com/FiloSottile/gvt
-cd $GOPATH/src/github.com/zquestz/ws-tcp-proxy
-gvt restore
-```
-
 ## Contributors
 
 * [Josh Ellithorpe (zquestz)](https://github.com/zquestz/)
