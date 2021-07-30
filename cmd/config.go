@@ -11,7 +11,7 @@ import (
 
 const (
 	appName     = "ws-tcp-proxy"
-	version     = "0.1.0"
+	version     = "0.1.1"
 	defaultPort = 8080
 )
 
