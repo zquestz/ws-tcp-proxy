@@ -22,11 +22,10 @@ Flags:
 
 ## Install
 
+Make sure that `GOPATH` and `GOBIN` env vars are set. Then run:
+
 ```
-go get -v github.com/zquestz/ws-tcp-proxy
-cd $GOPATH/src/github.com/zquestz/ws-tcp-proxy
-make
-make install
+go install github.com/zquestz/ws-tcp-proxy@latest
 ```
 
 ## Contributors
