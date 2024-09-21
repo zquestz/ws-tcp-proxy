@@ -41,5 +41,5 @@ ws-tcp-proxy is released under the MIT license.
 [License-Image]: https://img.shields.io/npm/l/express.svg
 [ReportCard-URL]: http://goreportcard.com/report/zquestz/ws-tcp-proxy
 [ReportCard-Image]: https://goreportcard.com/badge/github.com/zquestz/ws-tcp-proxy
-[Build-Status-URL]: http://travis-ci.com/zquestz/ws-tcp-proxy
-[Build-Status-Image]: https://travis-ci.com/zquestz/ws-tcp-proxy.svg?branch=master
+[Build-Status-URL]: https://app.travis-ci.com/github/zquestz/ws-tcp-proxy
+[Build-Status-Image]: https://app.travis-ci.com/zquestz/ws-tcp-proxy.svg?branch=master
